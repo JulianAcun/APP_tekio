@@ -168,7 +168,9 @@ fun TicketDetailScreen(
                             Row(
                                 Modifier.fillMaxWidth()
                                     .then(if (selected) Modifier.border(1.dp, TekioRed, RoundedCornerShape(6.dp)) else Modifier)
-                                    .clickable { /* TODO: Fase 3 - Enviar actualización de clasificación a MySQL */ }
+                                    .clickable {
+                                        viewModel.actualizarEquipoEnMySQL(ticket.id, option.type.label)
+                                    }
                                     .padding(horizontal = 14.dp, vertical = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -207,9 +209,10 @@ fun TicketDetailScreen(
 
         Button(
             onClick = {
-                /* TODO: Fase 3 - Enviar orden de cierre a MySQL */
+                viewModel.cerrarTicketEnMySQL(ticket.id)
                 onBack()
             },
+            // ... (conserva las formas y colores que ya tiene el botón),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = TekioRed, contentColor = Color.White),
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp).height(52.dp)

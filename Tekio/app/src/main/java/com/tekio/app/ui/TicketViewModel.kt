@@ -19,7 +19,31 @@ class TicketViewModel : ViewModel() {
     init {
         obtenerTicketsDeMySQL()
     }
-
+    fun actualizarEquipoEnMySQL(id: Int, nuevoEquipo: String) {
+        viewModelScope.launch {
+            try {
+                val respuesta = RetrofitClient.apiService.actualizarEquipo(id, nuevoEquipo)
+                if (respuesta.estado == "exito") {
+                    // Si el PHP confirma la actualización, recargamos la lista para refrescar la pantalla
+                    obtenerTicketsDeMySQL()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+    fun cerrarTicketEnMySQL(id: Int) {
+        viewModelScope.launch {
+            try {
+                val respuesta = RetrofitClient.apiService.cerrarTicket(id)
+                if (respuesta.estado == "exito") {
+                    obtenerTicketsDeMySQL() // Refresca la lista al volver
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
     private fun obtenerTicketsDeMySQL() {
         // viewModelScope.launch abre un hilo de trabajo en segundo plano
         viewModelScope.launch {
