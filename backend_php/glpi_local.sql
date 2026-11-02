@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 02-11-2026 a las 00:20:48
+-- Tiempo de generación: 02-11-2026 a las 01:22:43
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.0.30
 
@@ -31,19 +31,20 @@ CREATE TABLE `tickets` (
   `id` int(11) NOT NULL,
   `cliente` varchar(100) NOT NULL,
   `equipo` varchar(100) NOT NULL,
-  `falla` text NOT NULL
+  `falla` text NOT NULL,
+  `estado` varchar(20) DEFAULT 'abierto'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `tickets`
 --
 
-INSERT INTO `tickets` (`id`, `cliente`, `equipo`, `falla`) VALUES
-(3, 'Andres Garcia', 'PC de Escritorio', 'Pantalla azul al encender'),
-(4, 'Laura Gomez', 'Mouse inalambrico', 'El clic izquierdo no responde'),
-(5, 'Laura Gomez', 'Mouse inalambrico', 'El clic izquierdo no responde'),
-(6, 'test user name', 'Pendiente de clasificación', 'this is a text message'),
-(7, 'test user name', 'Pendiente de clasificación', 'this is a text message');
+INSERT INTO `tickets` (`id`, `cliente`, `equipo`, `falla`, `estado`) VALUES
+(3, 'Andres Garcia', 'PC de Escritorio', 'Pantalla azul al encender', 'abierto'),
+(4, 'Laura Gomez', 'Mouse inalambrico', 'El clic izquierdo no responde', 'abierto'),
+(5, 'Laura Gomez', 'Mouse inalambrico', 'El clic izquierdo no responde', 'abierto'),
+(6, 'test user name', 'Pendiente de clasificación', 'this is a text message', 'abierto'),
+(7, 'test user name', 'Impresora', 'this is a text message', 'cerrado');
 
 --
 -- Índices para tablas volcadas
