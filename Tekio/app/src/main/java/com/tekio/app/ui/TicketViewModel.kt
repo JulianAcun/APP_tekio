@@ -37,6 +37,26 @@ class TicketViewModel : ViewModel() {
             }
         }
     }
+    fun iniciarSesion(
+        usuario: String,
+        clave: String,
+        onExito: (String) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val respuesta = RetrofitClient.apiService.login(usuario, clave)
+                if (respuesta.estado == "exito") {
+                    onExito(respuesta.mensaje) // Trae el nombre de MySQL
+                } else {
+                    onError(respuesta.mensaje)
+                }
+            } catch (e: Exception) {
+                onError("Sin conexión al servidor")
+                e.printStackTrace()
+            }
+        }
+    }
     fun cerrarTicketEnMySQL(id: Int) {
         viewModelScope.launch {
             try {

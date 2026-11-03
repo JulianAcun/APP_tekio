@@ -26,7 +26,9 @@ import com.tekio.app.ui.theme.*
 @Composable
 fun TicketListScreen(
     viewModel: TicketViewModel,
+    nombreTecnico: String, // <-- AÑADE ESTA LÍNEA
     onTicketClick: (Int) -> Unit,
+    onLogout: () -> Unit,
     onAddTicket: () -> Unit = {}
 ) {
     val tickets by viewModel.tickets.collectAsState()
@@ -111,14 +113,96 @@ fun TicketListScreen(
                         }
                     }
                 }
-                "Historial" -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Pantalla de Historial", color = Color.White)
+                "Rutas" -> {
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Spacer(Modifier.height(16.dp))
+                        Text("Ruta de Soporte", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        Text("Bogotá, Colombia", color = TekioMuted, fontSize = 14.sp)
+
+                        Spacer(Modifier.height(32.dp))
+
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = TekioSurface),
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Column(Modifier.padding(16.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier.size(48.dp).clip(CircleShape).background(TekioRed.copy(alpha = 0.2f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(Icons.Filled.LocationOn, contentDescription = null, tint = TekioRed)
+                                    }
+                                    Spacer(Modifier.width(16.dp))
+                                    Column {
+                                        Text("Distancia Estimada", color = TekioMuted, fontSize = 14.sp)
+                                        // Distancia simulada aleatoria para la presentación
+                                        Text("14.5 km", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                                    }
+                                }
+
+                                Spacer(Modifier.height(24.dp))
+                                Divider(color = Color.Gray.copy(alpha = 0.1f))
+                                Spacer(Modifier.height(24.dp))
+
+                                Text("Próxima Parada:", color = TekioMuted, fontSize = 14.sp)
+                                // Toma el primer ticket de la lista para simular el destino
+                                val proximoCliente = ticketsFiltrados.firstOrNull()?.cliente ?: "Sin tickets asignados"
+                                Text(proximoCliente, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+
+                                Spacer(Modifier.height(24.dp))
+
+                                Button(
+                                    onClick = { /* Simulación visual */ },
+                                    colors = ButtonDefaults.buttonColors(containerColor = TekioRed),
+                                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text("Iniciar Navegación", color = Color.White, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
                     }
                 }
                 "Perfil" -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Pantalla de Perfil Técnico", color = Color.White)
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Spacer(Modifier.height(32.dp))
+                        // Avatar circular dinámico
+                        Box(
+                            modifier = Modifier.size(100.dp).clip(CircleShape).background(TekioRed),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = if (nombreTecnico.isNotBlank()) nombreTecnico.take(1).uppercase() else "T",
+                                color = Color.White, fontSize = 48.sp, fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Spacer(Modifier.height(16.dp))
+                        // Nombre del técnico inyectado desde MySQL
+                        Text(
+                            text = nombreTecnico.ifBlank { "Técnico" },
+                            color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold
+                        )
+                        Text("Soporte en Terreno", color = TekioMuted, fontSize = 16.sp)
+
+                        Spacer(Modifier.height(48.dp))
+
+                        // Botón visual para mantener la estética
+                        Button(
+                            onClick = { onLogout() },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C2C2C)),
+                            modifier = Modifier.fillMaxWidth().height(50.dp),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Cerrar Sesión", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
@@ -410,11 +494,11 @@ private fun TekioBottomBar(
             label = { Text("Tickets") }
         )
         NavigationBarItem(
-            selected = pantallaActual == "Historial",
-            onClick = { onScreenSelected("Historial") },
+            selected = pantallaActual == "Rutas",
+            onClick = { onScreenSelected("Rutas") },
             colors = colors,
-            icon = { Icon(Icons.Filled.History, contentDescription = null) },
-            label = { Text("Historial") }
+            icon = { Icon(Icons.Filled.Map, contentDescription = null) },
+            label = { Text("Rutas") }
         )
         NavigationBarItem(
             selected = pantallaActual == "Perfil",

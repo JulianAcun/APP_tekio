@@ -14,6 +14,13 @@ interface TekioApi {
     suspend fun obtenerTickets(): List<Ticket>
 
     @FormUrlEncoded
+    @POST("sistema_tickets/login.php")
+    suspend fun login(
+        @Field("usuario") usuario: String,
+        @Field("password") password: String
+    ): RespuestaPHP
+
+    @FormUrlEncoded
     @POST("sistema_tickets/create_ticket.php")
     suspend fun crearTicket(
         @Field("cliente") cliente: String,

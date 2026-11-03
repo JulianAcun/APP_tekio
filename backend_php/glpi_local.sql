@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 03-11-2026 a las 04:54:41
+-- Tiempo de generación: 03-11-2026 a las 05:14:27
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.0.30
 
@@ -20,6 +20,26 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `glpi_local`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `tecnicos`
+--
+
+CREATE TABLE `tecnicos` (
+  `id` int(11) NOT NULL,
+  `nombre` varchar(100) DEFAULT NULL,
+  `usuario` varchar(50) DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `tecnicos`
+--
+
+INSERT INTO `tecnicos` (`id`, `nombre`, `usuario`, `password`) VALUES
+(1, 'Julian Acuña', 'admin', '1234');
 
 -- --------------------------------------------------------
 
@@ -52,6 +72,12 @@ INSERT INTO `tickets` (`id`, `cliente`, `equipo`, `falla`, `estado`) VALUES
 --
 
 --
+-- Indices de la tabla `tecnicos`
+--
+ALTER TABLE `tecnicos`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indices de la tabla `tickets`
 --
 ALTER TABLE `tickets`
@@ -60,6 +86,12 @@ ALTER TABLE `tickets`
 --
 -- AUTO_INCREMENT de las tablas volcadas
 --
+
+--
+-- AUTO_INCREMENT de la tabla `tecnicos`
+--
+ALTER TABLE `tecnicos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `tickets`
