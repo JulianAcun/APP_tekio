@@ -2,43 +2,15 @@ package com.tekio.app.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PhoneAndroid
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ConfirmationNumber
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,12 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tekio.app.data.Ticket
-import com.tekio.app.ui.theme.TekioBackground
-import com.tekio.app.ui.theme.TekioMuted
-import com.tekio.app.ui.theme.TekioRed
-import com.tekio.app.ui.theme.TekioRedDark
-import com.tekio.app.ui.theme.TekioSurface
-import com.tekio.app.ui.theme.TekioSurfaceVariant
+import com.tekio.app.ui.theme.*
 
 @Composable
 fun TicketListScreen(
@@ -64,74 +31,238 @@ fun TicketListScreen(
 ) {
     val tickets by viewModel.tickets.collectAsState()
 
+    val mensajeError by viewModel.mensajeError.collectAsState()
+    val contexto = androidx.compose.ui.platform.LocalContext.current
+
+    LaunchedEffect(mensajeError) {
+        if (mensajeError != null) {
+            android.widget.Toast.makeText(contexto, mensajeError, android.widget.Toast.LENGTH_LONG).show()
+            viewModel.limpiarError()
+        }
+    }
+// Variables de estado para dar vida a la interfaz
+    var mostrarActivos by remember { mutableStateOf(true) }
+    var pantallaActual by remember { mutableStateOf("Tickets") }
+    var textoBusqueda by remember { mutableStateOf("") }
+    var mostrarBuscador by remember { mutableStateOf(false) }
+
+// Control del formulario emergente
+    var mostrarDialogoCrear by remember { mutableStateOf(false) }
+    var nuevoCliente by remember { mutableStateOf("") }
+    var nuevoEquipo by remember { mutableStateOf("") }
+    var nuevaFalla by remember { mutableStateOf("") }
+
+// ÚNICA lógica de filtrado dinámico (Pestañas + Buscador)
+    val ticketsFiltrados = tickets.filter { ticket ->
+        val coincideEstado = if (mostrarActivos) ticket.estado != "cerrado" else ticket.estado == "cerrado"
+        val coincideTexto = ticket.cliente.contains(textoBusqueda, ignoreCase = true) || ticket.falla.contains(textoBusqueda, ignoreCase = true)
+        coincideEstado && coincideTexto
+    }
+
+// Cuenta cuántos activos hay en total para el globo rojo
+    val totalActivos = tickets.count { it.estado != "cerrado" }
+
     Scaffold(
         containerColor = TekioBackground,
-        bottomBar = { TekioBottomBar() },
+        bottomBar = {
+            TekioBottomBar(
+                pantallaActual = pantallaActual,
+                onScreenSelected = { pantallaActual = it }
+            )
+        },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddTicket,
-                shape = CircleShape,
-                containerColor = TekioRed,
-                contentColor = Color.White
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "Nuevo ticket")
-            }
-        }
-    ) { padding ->
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            TekioHeader()
-            TabsRow(cantidadActivos = tickets.size)
-            LazyColumn(
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(tickets, key = { it.id }) { ticket ->
-                    // Eliminamos el toIntOrNull() problemático aquí
-                    TicketCard(ticket) { onTicketClick(ticket.id) }
+            if (pantallaActual == "Tickets") {
+                FloatingActionButton(
+                    onClick = { mostrarDialogoCrear = true }, // ESTA LÍNEA CAMBIA
+                    shape = CircleShape,
+                    containerColor = TekioRed,
+                    contentColor = Color.White
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = "Nuevo ticket")
                 }
             }
         }
+    ) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            when (pantallaActual) {
+                "Tickets" -> {
+                    Column(Modifier.fillMaxSize()) {
+                        // Aquí inyectamos el nuevo encabezado con buscador
+                        TekioHeader(
+                            mostrarBuscador = mostrarBuscador,
+                            textoBusqueda = textoBusqueda,
+                            onBuscadorToggle = { mostrarBuscador = !mostrarBuscador },
+                            onTextoCambio = { textoBusqueda = it }
+                        )
+
+                        TabsRow(
+                            cantidadActivos = totalActivos,
+                            mostrarActivos = mostrarActivos,
+                            onTabSelected = { mostrarActivos = it }
+                        )
+                        LazyColumn(
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            items(ticketsFiltrados, key = { it.id }) { ticket ->
+                                TicketCard(ticket) { onTicketClick(ticket.id) }
+                            }
+                        }
+                    }
+                }
+                "Historial" -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Pantalla de Historial", color = Color.White)
+                    }
+                }
+                "Perfil" -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Pantalla de Perfil Técnico", color = Color.White)
+                    }
+                }
+            }
+        }
+        // Cuadro de diálogo para crear nuevo ticket
+        if (mostrarDialogoCrear) {
+            AlertDialog(
+                onDismissRequest = { mostrarDialogoCrear = false },
+                containerColor = TekioSurface,
+                title = { Text("Nuevo Ticket", color = Color.White, fontWeight = FontWeight.Bold) },
+                text = {
+                    Column {
+                        OutlinedTextField(
+                            value = nuevoCliente,
+                            onValueChange = { nuevoCliente = it },
+                            label = { Text("Nombre del Cliente", color = TekioMuted) },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = TekioRed, unfocusedBorderColor = Color.Gray,
+                                focusedTextColor = Color.White, unfocusedTextColor = Color.White
+                            ),
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = nuevoEquipo,
+                            onValueChange = { nuevoEquipo = it },
+                            label = { Text("Equipo (Ej. Laptop, Impresora)", color = TekioMuted) },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = TekioRed, unfocusedBorderColor = Color.Gray,
+                                focusedTextColor = Color.White, unfocusedTextColor = Color.White
+                            ),
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = nuevaFalla,
+                            onValueChange = { nuevaFalla = it },
+                            label = { Text("Falla Reportada", color = TekioMuted) },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = TekioRed, unfocusedBorderColor = Color.Gray,
+                                focusedTextColor = Color.White, unfocusedTextColor = Color.White
+                            ),
+                            modifier = Modifier.fillMaxWidth().height(100.dp)
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            if (nuevoCliente.isNotBlank() && nuevaFalla.isNotBlank()) {
+                                viewModel.crearTicketEnMySQL(nuevoCliente, nuevoEquipo, nuevaFalla)
+                                mostrarDialogoCrear = false
+                                nuevoCliente = ""
+                                nuevoEquipo = ""
+                                nuevaFalla = ""
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = TekioRed)
+                    ) {
+                        Text("Crear Ticket", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            mostrarDialogoCrear = false
+                            nuevoCliente = ""
+                            nuevoEquipo = ""
+                            nuevaFalla = ""
+                        }
+                    ) {
+                        Text("Cancelar", color = TekioMuted)
+                    }
+                }
+            )
+        }
     }
 }
 
 @Composable
-private fun TekioHeader() {
+private fun TekioHeader(
+    mostrarBuscador: Boolean,
+    textoBusqueda: String,
+    onBuscadorToggle: () -> Unit,
+    onTextoCambio: (String) -> Unit
+) {
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .height(50.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            Modifier
-                .size(44.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(TekioRed),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("T", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Black)
-        }
-        Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f)) {
-            Text("TEKIO", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
-            Text("Gestión de Tickets", color = TekioMuted, fontSize = 14.sp)
-        }
-        IconButton(onClick = { }) {
-            Icon(Icons.Filled.Search, contentDescription = "Buscar", tint = Color.White)
-        }
-        IconButton(onClick = { }) {
-            Icon(Icons.Filled.MoreVert, contentDescription = "Más", tint = Color.White)
+        if (mostrarBuscador) {
+            OutlinedTextField(
+                value = textoBusqueda,
+                onValueChange = onTextoCambio,
+                placeholder = { Text("Buscar cliente o falla...", color = Color.Gray) },
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = TekioRed, unfocusedBorderColor = Color.Gray,
+                    focusedTextColor = Color.White, unfocusedTextColor = Color.White
+                )
+            )
+            IconButton(onClick = {
+                onTextoCambio("")
+                onBuscadorToggle()
+            }) {
+                Icon(Icons.Filled.Close, contentDescription = "Cerrar", tint = Color.White)
+            }
+        } else {
+            Box(
+                Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(TekioRed),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("T", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Black)
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text("TEKIO", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+                Text("Gestión de Tickets", color = TekioMuted, fontSize = 14.sp)
+            }
+            IconButton(onClick = onBuscadorToggle) {
+                Icon(Icons.Filled.Search, contentDescription = "Buscar", tint = Color.White)
+            }
+            IconButton(onClick = { /* TODO: Implementar menú opciones */ }) {
+                Icon(Icons.Filled.MoreVert, contentDescription = "Más", tint = Color.White)
+            }
         }
     }
 }
 
 @Composable
-private fun TabsRow(cantidadActivos: Int) {
+private fun TabsRow(
+    cantidadActivos: Int,
+    mostrarActivos: Boolean,
+    onTabSelected: (Boolean) -> Unit
+) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -140,23 +271,27 @@ private fun TabsRow(cantidadActivos: Int) {
             .clip(RoundedCornerShape(8.dp))
             .background(TekioSurfaceVariant)
     ) {
-        val activeSelected = true
         Box(
             Modifier
                 .weight(1f)
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(8.dp))
-                .background(if (activeSelected) TekioRed else Color.Transparent),
+                .background(if (mostrarActivos) TekioRed else Color.Transparent)
+                .clickable { onTabSelected(true) },
             contentAlignment = Alignment.Center
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Tickets Activos", color = Color.White, fontWeight = FontWeight.SemiBold)
+                Text(
+                    "Tickets Activos",
+                    color = if (mostrarActivos) Color.White else TekioMuted,
+                    fontWeight = FontWeight.SemiBold
+                )
                 Spacer(Modifier.width(8.dp))
                 Box(
                     Modifier
                         .size(22.dp)
                         .clip(CircleShape)
-                        .background(Color.Black.copy(alpha = 0.6f)),
+                        .background(if (mostrarActivos) Color.Black.copy(alpha = 0.6f) else TekioSurface),
                     contentAlignment = Alignment.Center
                 ) {
                     Text("$cantidadActivos", color = Color.White, fontSize = 12.sp)
@@ -168,10 +303,15 @@ private fun TabsRow(cantidadActivos: Int) {
                 .weight(1f)
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(8.dp))
-                .background(Color.Transparent),
+                .background(if (!mostrarActivos) TekioRed else Color.Transparent)
+                .clickable { onTabSelected(false) },
             contentAlignment = Alignment.Center
         ) {
-            Text("Completados", color = TekioMuted, fontWeight = FontWeight.SemiBold)
+            Text(
+                "Completados",
+                color = if (!mostrarActivos) Color.White else TekioMuted,
+                fontWeight = FontWeight.SemiBold
+            )
         }
     }
 }
@@ -197,7 +337,6 @@ private fun TicketCard(ticket: Ticket, onClick: () -> Unit) {
                 .weight(1f)
                 .padding(start = 12.dp, top = 10.dp, bottom = 10.dp)
         ) {
-            // Eliminamos la conversión de ID innecesaria
             Text("#%04d".format(ticket.id), color = TekioRed, fontSize = 18.sp, fontWeight = FontWeight.Bold)
 
             Text(ticket.cliente, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Medium)
@@ -233,21 +372,28 @@ private fun TicketCard(ticket: Ticket, onClick: () -> Unit) {
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Sustituimos el estado problemático por un badge fijo temporal
             Box(
                 Modifier
                     .clip(RoundedCornerShape(50))
                     .background(TekioRed)
                     .padding(horizontal = 12.dp, vertical = 4.dp)
             ) {
-                Text("Nuevo", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Text(
+                    if (ticket.estado == "abierto") "Nuevo" else "Ok",
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         }
     }
 }
 
 @Composable
-private fun TekioBottomBar() {
+private fun TekioBottomBar(
+    pantallaActual: String,
+    onScreenSelected: (String) -> Unit
+) {
     NavigationBar(containerColor = TekioSurface) {
         val colors = NavigationBarItemDefaults.colors(
             selectedIconColor = TekioRed,
@@ -257,17 +403,23 @@ private fun TekioBottomBar() {
             indicatorColor = Color.Transparent
         )
         NavigationBarItem(
-            selected = true, onClick = { }, colors = colors,
+            selected = pantallaActual == "Tickets",
+            onClick = { onScreenSelected("Tickets") },
+            colors = colors,
             icon = { Icon(Icons.Filled.ConfirmationNumber, contentDescription = null) },
             label = { Text("Tickets") }
         )
         NavigationBarItem(
-            selected = false, onClick = { }, colors = colors,
+            selected = pantallaActual == "Historial",
+            onClick = { onScreenSelected("Historial") },
+            colors = colors,
             icon = { Icon(Icons.Filled.History, contentDescription = null) },
             label = { Text("Historial") }
         )
         NavigationBarItem(
-            selected = false, onClick = { }, colors = colors,
+            selected = pantallaActual == "Perfil",
+            onClick = { onScreenSelected("Perfil") },
+            colors = colors,
             icon = { Icon(Icons.Filled.Person, contentDescription = null) },
             label = { Text("Perfil") }
         )

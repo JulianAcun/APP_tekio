@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -207,19 +208,36 @@ fun TicketDetailScreen(
             }
         }
 
-        Button(
-            onClick = {
-                viewModel.cerrarTicketEnMySQL(ticket.id)
-                onBack()
-            },
-            // ... (conserva las formas y colores que ya tiene el botón),
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = TekioRed, contentColor = Color.White),
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp).height(52.dp)
-        ) {
-            Icon(Icons.Filled.Check, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text("Cerrar / Completar Ticket", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        if (ticket.estado == "cerrado") {
+            // Diseño del botón cuando el ticket ya está completado (Gris)
+            Button(
+                onClick = {
+                    viewModel.reabrirTicketEnMySQL(ticket.id)
+                    onBack()
+                },
+                shape = RoundedCornerShape(size = 8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C2C2C), contentColor = Color.White),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp).height(50.dp)
+            ) {
+                Icon(imageVector = Icons.Filled.Refresh, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Reabrir Ticket", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            }
+        } else {
+            // Diseño original de tu botón cuando el ticket está activo (Rojo)
+            Button(
+                onClick = {
+                    viewModel.cerrarTicketEnMySQL(ticket.id)
+                    onBack()
+                },
+                shape = RoundedCornerShape(size = 8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = TekioRed, contentColor = Color.White),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp).height(50.dp)
+            ) {
+                Icon(imageVector = Icons.Filled.Check, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Cerrar / Completar Ticket", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            }
         }
     }
 }

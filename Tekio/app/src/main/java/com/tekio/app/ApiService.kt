@@ -12,6 +12,18 @@ import retrofit2.http.POST
 interface TekioApi {
     @GET("sistema_tickets/get_tickets.php")
     suspend fun obtenerTickets(): List<Ticket>
+
+    @FormUrlEncoded
+    @POST("sistema_tickets/create_ticket.php")
+    suspend fun crearTicket(
+        @Field("cliente") cliente: String,
+        @Field("equipo") equipo: String,
+        @Field("falla") falla: String
+    ): RespuestaPHP
+
+    @FormUrlEncoded
+    @POST("sistema_tickets/reopen_ticket.php")
+    suspend fun reabrirTicket(@Field("id") id: Int): RespuestaPHP
     @FormUrlEncoded
     @POST("sistema_tickets/close_ticket.php")
     suspend fun cerrarTicket(@Field("id") id: Int): RespuestaPHP

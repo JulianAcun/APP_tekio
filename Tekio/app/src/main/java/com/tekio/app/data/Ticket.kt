@@ -27,7 +27,8 @@ data class Ticket(
     val id: Int,
     val cliente: String,
     val equipo: String,
-    val falla: String
+    val falla: String,
+    val estado: String = "abierto"
 )
 
 // Nota: Eliminamos todo el bloque 'object SampleData' porque ya

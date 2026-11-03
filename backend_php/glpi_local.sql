@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 02-11-2026 a las 01:22:43
+-- Tiempo de generación: 03-11-2026 a las 04:54:41
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.0.30
 
@@ -42,9 +42,10 @@ CREATE TABLE `tickets` (
 INSERT INTO `tickets` (`id`, `cliente`, `equipo`, `falla`, `estado`) VALUES
 (3, 'Andres Garcia', 'PC de Escritorio', 'Pantalla azul al encender', 'abierto'),
 (4, 'Laura Gomez', 'Mouse inalambrico', 'El clic izquierdo no responde', 'abierto'),
-(5, 'Laura Gomez', 'Mouse inalambrico', 'El clic izquierdo no responde', 'abierto'),
-(6, 'test user name', 'Pendiente de clasificación', 'this is a text message', 'abierto'),
-(7, 'test user name', 'Impresora', 'this is a text message', 'cerrado');
+(5, 'Laura Gomez', 'Mouse inalambrico', 'El clic izquierdo no responde', 'cerrado'),
+(6, 'test user name', 'Pendiente de clasificación', 'this is a text message', 'cerrado'),
+(7, 'test user name', 'Impresora', 'this is a text message', 'abierto'),
+(8, 'Julian', 'Laptop', 'Teclado Falla', 'abierto');
 
 --
 -- Índices para tablas volcadas
@@ -64,7 +65,7 @@ ALTER TABLE `tickets`
 -- AUTO_INCREMENT de la tabla `tickets`
 --
 ALTER TABLE `tickets`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

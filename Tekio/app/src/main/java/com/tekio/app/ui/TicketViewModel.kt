@@ -13,6 +13,10 @@ class TicketViewModel : ViewModel() {
 
     // 1. Variable reactiva que guardará la lista de tickets. Comienza vacía.
     private val _tickets = MutableStateFlow<List<Ticket>>(emptyList())
+    private val _mensajeError = MutableStateFlow<String?>(null)
+    val mensajeError: StateFlow<String?> = _mensajeError.asStateFlow()
+
+    fun limpiarError() { _mensajeError.value = null }
     val tickets: StateFlow<List<Ticket>> = _tickets.asStateFlow()
 
     // 2. Al abrir la app (inicializar el ViewModel), ejecutamos la consulta automáticamente
@@ -28,6 +32,7 @@ class TicketViewModel : ViewModel() {
                     obtenerTicketsDeMySQL()
                 }
             } catch (e: Exception) {
+                _mensajeError.value = "Sin conexión al servidor Ngrok"
                 e.printStackTrace()
             }
         }
@@ -40,6 +45,33 @@ class TicketViewModel : ViewModel() {
                     obtenerTicketsDeMySQL() // Refresca la lista al volver
                 }
             } catch (e: Exception) {
+                _mensajeError.value = "Sin conexión al servidor Ngrok"
+                e.printStackTrace()
+            }
+        }
+    }
+    fun crearTicketEnMySQL(cliente: String, equipo: String, falla: String) {
+        viewModelScope.launch {
+            try {
+                val respuesta = RetrofitClient.apiService.crearTicket(cliente, equipo, falla)
+                if (respuesta.estado == "exito") {
+                    obtenerTicketsDeMySQL() // Recargamos para que el nuevo ticket aparezca arriba
+                }
+            } catch (e: Exception) {
+                _mensajeError.value = "Sin conexión al servidor Ngrok"
+                e.printStackTrace()
+            }
+        }
+    }
+    fun reabrirTicketEnMySQL(id: Int) {
+        viewModelScope.launch {
+            try {
+                val respuesta = RetrofitClient.apiService.reabrirTicket(id)
+                if (respuesta.estado == "exito") {
+                    obtenerTicketsDeMySQL() // Recarga la lista
+                }
+            } catch (e: Exception) {
+                _mensajeError.value = "Sin conexión al servidor Ngrok"
                 e.printStackTrace()
             }
         }
@@ -55,7 +87,7 @@ class TicketViewModel : ViewModel() {
                 _tickets.value = listaDesdePHP
 
             } catch (e: Exception) {
-                // Si el túnel de Ngrok está apagado o no hay internet, evitamos que la app explote
+                _mensajeError.value = "Sin conexión al servidor Ngrok"
                 e.printStackTrace()
             }
         }
