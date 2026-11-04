@@ -21,13 +21,30 @@ interface TekioApi {
     ): RespuestaPHP
 
     @FormUrlEncoded
+    @POST("sistema_tickets/register.php")
+    suspend fun registrar(
+        @Field("nombre") nombre: String,
+        @Field("usuario") usuario: String,
+        @Field("password") password: String
+    ): RespuestaPHP
+
+    @FormUrlEncoded
     @POST("sistema_tickets/create_ticket.php")
     suspend fun crearTicket(
         @Field("cliente") cliente: String,
         @Field("equipo") equipo: String,
         @Field("falla") falla: String
     ): RespuestaPHP
-
+    @FormUrlEncoded
+    @POST("sistema_tickets/update_ticket.php")
+    suspend fun actualizarTicket(
+        @Field("id") id: Int,
+        @Field("estado") estado: String,
+        @Field("marca_equipo") marcaEquipo: String,
+        @Field("clasificacion_equipo") clasificacionEquipo: String,
+        @Field("repuesto") repuesto: String,
+        @Field("notas") notas: String
+    ): RespuestaPHP
     @FormUrlEncoded
     @POST("sistema_tickets/reopen_ticket.php")
     suspend fun reabrirTicket(@Field("id") id: Int): RespuestaPHP

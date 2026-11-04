@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.tekio.app-mergeDebugResources-2:/values-sv/values-sv.xml",
+            "outputFile": "com.tekio.app-mergeDebugResources-48:/values-sv/values-sv.xml",
             "map": [
                 {
                     "source": "C:\\Users\\acuna\\.gradle\\caches\\9.6.0\\transforms\\9e7691705c834a2addf1d0420398fc4e\\transformed\\foundation-release\\res\\values-sv\\values-sv.xml",

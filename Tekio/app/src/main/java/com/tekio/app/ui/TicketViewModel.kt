@@ -112,4 +112,52 @@ class TicketViewModel : ViewModel() {
             }
         }
     }
+    fun registrarUsuario(
+        nombre: String,
+        usuario: String,
+        clave: String,
+        onExito: (String) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val respuesta = RetrofitClient.apiService.registrar(nombre, usuario, clave)
+                if (respuesta.estado == "exito") {
+                    onExito(respuesta.mensaje)
+                } else {
+                    onError(respuesta.mensaje)
+                }
+            } catch (e: Exception) {
+                onError("Sin conexión al servidor Ngrok")
+                e.printStackTrace()
+            }
+        }
+    }
+    fun guardarCambiosTicket(
+        id: Int,
+        estado: String,
+        marcaEquipo: String,
+        clasificacionEquipo: String,
+        repuesto: String,
+        notas: String,
+        onExito: (String) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val respuesta = RetrofitClient.apiService.actualizarTicket(
+                    id, estado, marcaEquipo, clasificacionEquipo, repuesto, notas
+                )
+                if (respuesta.estado == "exito") {
+                    obtenerTicketsDeMySQL() // Refresca la lista general para ver los cambios
+                    onExito(respuesta.mensaje)
+                } else {
+                    onError(respuesta.mensaje)
+                }
+            } catch (e: Exception) {
+                onError("Sin conexión al servidor")
+                e.printStackTrace()
+            }
+        }
+    }
 }

@@ -3,101 +3,99 @@ package com.tekio.app.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Computer
-import androidx.compose.material.icons.filled.ConfirmationNumber
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Laptop
-import androidx.compose.material.icons.filled.Monitor
-import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PhoneAndroid
-import androidx.compose.material.icons.filled.Print
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Sms
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tekio.app.data.DeviceType
-import com.tekio.app.ui.theme.TekioBackground
-import com.tekio.app.ui.theme.TekioMuted
-import com.tekio.app.ui.theme.TekioRed
-import com.tekio.app.ui.theme.TekioRedDark
-import com.tekio.app.ui.theme.TekioSurface
+import com.tekio.app.data.*
+import com.tekio.app.ui.theme.*
 
-private data class DeviceOption(val type: DeviceType, val icon: ImageVector)
-
-private val deviceOptions = listOf(
-    DeviceOption(DeviceType.LAPTOP, Icons.Filled.Laptop),
-    DeviceOption(DeviceType.PC, Icons.Filled.Computer),
-    DeviceOption(DeviceType.MONITOR, Icons.Filled.Monitor),
-    DeviceOption(DeviceType.IMPRESORA, Icons.Filled.Print),
-    DeviceOption(DeviceType.OTRO, Icons.Filled.MoreHoriz)
+private val clasificaciones = listOf(
+    DeviceType.LAPTOP, DeviceType.PC, DeviceType.MONITOR, DeviceType.IMPRESORA, DeviceType.OTRO
 )
+
+private fun iconoClasificacion(t: DeviceType): ImageVector = when (t) {
+    DeviceType.LAPTOP, DeviceType.PORTATIL -> Icons.Filled.Laptop
+    DeviceType.PC -> Icons.Filled.Computer
+    DeviceType.MONITOR -> Icons.Filled.Monitor
+    DeviceType.IMPRESORA -> Icons.Filled.Print
+    DeviceType.OTRO -> Icons.Filled.MoreHoriz
+    DeviceType.PENDIENTE -> Icons.Filled.PhoneAndroid
+}
 
 @Composable
 fun TicketDetailScreen(
     viewModel: TicketViewModel,
     ticketId: Int,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onVerHistorial: () -> Unit = {}
 ) {
-    // 1. Escuchamos los datos reales y buscamos el ticket específico
     val tickets by viewModel.tickets.collectAsState()
     val ticket = tickets.find { it.id == ticketId }
 
-    // 2. Variables de estado temporal para UI (hasta que creemos el endpoint POST)
-    var notasInternas by remember { mutableStateOf("") }
-
     if (ticket == null) {
-        onBack()
+        LaunchedEffect(Unit) { onBack() }
         return
     }
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .background(TekioBackground)
-    ) {
+    val completado = ticket.estado == "cerrado"
+
+    // ---- Estado local del formulario (se inicializa una vez por ticket) ----
+    val contexto = androidx.compose.ui.platform.LocalContext.current
+    var guardando by remember { mutableStateOf(false) }
+    val inicial = remember(ticket.id) { EquipoCodec.decodificar(ticket.equipo) }
+    var clasificacion by remember(ticket.id) { mutableStateOf(inicial.clasificacion) }
+    var marca by remember(ticket.id) { mutableStateOf(inicial.marca) }
+    var referencia by remember(ticket.id) { mutableStateOf(inicial.referencia) }
+    var notas by remember(ticket.id) { mutableStateOf(TicketLocalStore.notas[ticket.id] ?: "") }
+    var repuesto by remember(ticket.id) { mutableStateOf(TicketLocalStore.repuestos[ticket.id] ?: "") }
+    var estado by remember(ticket.id) { mutableStateOf(TicketLocalStore.estadoDe(ticket.id)) }
+    var menuExpandido by remember { mutableStateOf(false) }
+
+    /** Guarda lo que cambió y lo anota en el historial. */
+    fun guardar() {
+        // 1. Equipo -> MySQL con el endpoint existente
+        val nuevoEquipo = EquipoCodec.codificar(EquipoInfo(clasificacion, marca, referencia))
+        if (nuevoEquipo != ticket.equipo) {
+            viewModel.actualizarEquipoEnMySQL(ticket.id, nuevoEquipo)
+            TicketLocalStore.registrar(ticket.id, TipoEvento.EQUIPO, "${ticket.equipo} → $nuevoEquipo")
+        }
+        // 2. Notas del técnico
+        if (notas.trim() != (TicketLocalStore.notas[ticket.id] ?: "")) {
+            TicketLocalStore.notas[ticket.id] = notas.trim()
+            if (notas.isNotBlank()) TicketLocalStore.registrar(ticket.id, TipoEvento.NOTA, notas.trim().take(120))
+        }
+        // 3. Repuesto
+        if (repuesto.trim() != (TicketLocalStore.repuestos[ticket.id] ?: "")) {
+            TicketLocalStore.repuestos[ticket.id] = repuesto.trim()
+            if (repuesto.isNotBlank()) TicketLocalStore.registrar(ticket.id, TipoEvento.REPUESTO, "Repuesto: ${repuesto.trim()}")
+        }
+        // 4. Estado de trabajo
+        val anterior = TicketLocalStore.estadoDe(ticket.id)
+        if (estado != anterior) {
+            TicketLocalStore.estados[ticket.id] = estado
+            TicketLocalStore.registrar(ticket.id, TipoEvento.ESTADO, "${anterior.label} → ${estado.label}")
+        }
+    }
+
+    Column(Modifier.fillMaxSize().background(TekioBackground)) {
+        // ---- Barra superior ----
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -106,10 +104,25 @@ fun TicketDetailScreen(
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
             }
             Text("Detalle del Ticket", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-            IconButton(onClick = { }) { Icon(Icons.Filled.MoreVert, contentDescription = "Más", tint = Color.White) }
+            Box {
+                IconButton(onClick = { menuExpandido = true }) {
+                    Icon(Icons.Filled.MoreVert, contentDescription = "Más", tint = Color.White)
+                }
+                DropdownMenu(
+                    expanded = menuExpandido,
+                    onDismissRequest = { menuExpandido = false },
+                    modifier = Modifier.background(TekioSurfaceVariant)
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Ver historial", color = Color.White) },
+                        onClick = { menuExpandido = false; onVerHistorial() }
+                    )
+                }
+            }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(Color(0xFF22262C)))
 
+        // ---- Contenido ----
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -118,15 +131,23 @@ fun TicketDetailScreen(
                 Icon(Icons.Filled.ConfirmationNumber, contentDescription = null, tint = TekioRed, modifier = Modifier.size(36.dp))
                 Spacer(Modifier.width(12.dp))
                 Text("#%04d".format(ticket.id), color = TekioRed, fontSize = 32.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-
-                Box(Modifier.clip(RoundedCornerShape(50)).background(TekioRed).padding(horizontal = 12.dp, vertical = 4.dp)) {
-                    Text("Nuevo", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Box(
+                    Modifier.clip(RoundedCornerShape(50))
+                        .background(if (completado) Color(0xFF1E3A2A) else estado.color)
+                        .padding(horizontal = 12.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        if (completado) "Completado" else estado.label,
+                        color = if (completado) Color(0xFF5FD18C) else estado.textColor,
+                        fontSize = 13.sp, fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
 
             InfoRow(Icons.Filled.Person, "Cliente", ticket.cliente)
-            InfoRow(Icons.Filled.CalendarToday, "Fecha de creación", "Reciente")
+            InfoRow(Icons.Filled.CalendarToday, "Fecha de creación", formatearFecha(TicketLocalStore.fechaCreacion(ticket.id)))
 
+            // Falla reportada (solo lectura)
             Row(
                 Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(Color(0xFF2A0C0F))
                     .border(1.dp, TekioRedDark, RoundedCornerShape(8.dp)).padding(14.dp)
@@ -140,103 +161,221 @@ fun TicketDetailScreen(
                 }
             }
 
-            Row(verticalAlignment = Alignment.Top) {
-                Icon(Icons.Filled.PhoneAndroid, contentDescription = null, tint = TekioMuted, modifier = Modifier.size(32.dp))
-                Spacer(Modifier.width(14.dp))
-                Column {
-                    Text("Equipo", color = Color.White, fontWeight = FontWeight.SemiBold)
-                    Spacer(Modifier.height(6.dp))
-                    Row(
-                        Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(TekioSurface)
-                            .border(1.5.dp, TekioRed, RoundedCornerShape(8.dp)).padding(horizontal = 16.dp, vertical = 14.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(ticket.equipo, color = Color.White, fontSize = 17.sp, modifier = Modifier.weight(1f))
-                        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null, tint = Color.White)
-                    }
+            // Equipo: marca / referencia
+            SeccionConIcono(Icons.Filled.PhoneAndroid, "Equipo (marca / referencia)") {
+                CampoDesplegable(
+                    valor = marca.ifBlank { "Seleccionar marca" },
+                    opciones = MARCAS_EQUIPO,
+                    resaltado = true,
+                    onSeleccion = { marca = it; if (it != "Otros") referencia = "" }
+                )
+                if (marca == "Otros") {
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = referencia,
+                        onValueChange = { referencia = it },
+                        placeholder = { Text("Escribe la referencia del equipo", color = TekioMuted) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = camposColores()
+                    )
                 }
             }
 
-            Row(verticalAlignment = Alignment.Top) {
-                Icon(Icons.Filled.Search, contentDescription = null, tint = Color.White, modifier = Modifier.size(32.dp))
-                Spacer(Modifier.width(14.dp))
-                Column(Modifier.weight(1f)) {
-                    Text("Clasificar equipo", color = Color.White, fontWeight = FontWeight.SemiBold)
-                    Spacer(Modifier.height(6.dp))
-                    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(TekioSurface).border(1.dp, Color(0xFF2B3036), RoundedCornerShape(8.dp))) {
-                        deviceOptions.forEach { option ->
-                            val selected = ticket.equipo == option.type.label
-                            Row(
-                                Modifier.fillMaxWidth()
-                                    .then(if (selected) Modifier.border(1.dp, TekioRed, RoundedCornerShape(6.dp)) else Modifier)
-                                    .clickable {
-                                        viewModel.actualizarEquipoEnMySQL(ticket.id, option.type.label)
-                                    }
-                                    .padding(horizontal = 14.dp, vertical = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically
+            // Clasificación
+            SeccionConIcono(Icons.Filled.Search, "Clasificar equipo") {
+                CampoDesplegable(
+                    valor = clasificacion.label,
+                    opciones = clasificaciones.map { it.label },
+                    iconoDe = { etiqueta -> iconoClasificacion(clasificaciones.first { it.label == etiqueta }) },
+                    onSeleccion = { etiqueta -> clasificacion = clasificaciones.first { it.label == etiqueta } }
+                )
+            }
+
+            // Estado de trabajo (solo mientras el ticket está activo)
+            if (!completado) {
+                SeccionConIcono(Icons.Filled.Sync, "Estado del ticket") {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TicketStatus.values().forEach { opcion ->
+                            val activo = estado == opcion
+                            Box(
+                                Modifier.weight(1f).clip(RoundedCornerShape(8.dp))
+                                    .background(if (activo) opcion.color else TekioSurface)
+                                    .border(1.dp, if (activo) opcion.color else Color(0xFF2B3036), RoundedCornerShape(8.dp))
+                                    .clickable { estado = opcion }
+                                    .padding(vertical = 10.dp),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Icon(option.icon, contentDescription = null, tint = Color(0xFFD0D3D8), modifier = Modifier.size(22.dp))
-                                Spacer(Modifier.width(14.dp))
-                                Text(option.type.label, color = Color.White, fontSize = 15.sp, modifier = Modifier.weight(1f))
-                                if (selected) Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = TekioMuted)
+                                Text(opcion.label, color = if (activo) opcion.textColor else TekioMuted, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
                 }
             }
 
-            Row(verticalAlignment = Alignment.Top) {
-                Icon(Icons.Filled.Edit, contentDescription = null, tint = TekioMuted, modifier = Modifier.size(32.dp))
-                Spacer(Modifier.width(14.dp))
-                Column(Modifier.weight(1f)) {
-                    Text("Notas internas (opcional)", color = TekioMuted, fontSize = 15.sp)
-                    Spacer(Modifier.height(6.dp))
-                    OutlinedTextField(
-                        value = notasInternas,
-                        onValueChange = { notasInternas = it },
-                        placeholder = { Text("Agregar alguna observación...", color = TekioMuted) },
-                        modifier = Modifier.fillMaxWidth().height(96.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White, unfocusedTextColor = Color.White,
-                            focusedBorderColor = TekioRed, unfocusedBorderColor = Color(0xFF2B3036),
-                            cursorColor = TekioRed, focusedContainerColor = TekioSurface, unfocusedContainerColor = TekioSurface
-                        )
-                    )
-                    Text("${notasInternas.length}/200", color = TekioMuted, fontSize = 12.sp, modifier = Modifier.fillMaxWidth().padding(top = 4.dp), textAlign = TextAlign.End)
-                }
+            // Repuesto
+            SeccionConIcono(Icons.Filled.Build, "Repuesto cambiado (opcional)") {
+                OutlinedTextField(
+                    value = repuesto,
+                    onValueChange = { repuesto = it.take(80) },
+                    placeholder = { Text("Ej. Batería, disco SSD 512 GB…", color = TekioMuted) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = camposColores()
+                )
+            }
+
+            // Notas del técnico
+            SeccionConIcono(Icons.Filled.Edit, "Notas del técnico (opcional)") {
+                OutlinedTextField(
+                    value = notas,
+                    onValueChange = { notas = it.take(200) },
+                    placeholder = { Text("Agregar alguna observación...", color = TekioMuted) },
+                    modifier = Modifier.fillMaxWidth().height(96.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = camposColores()
+                )
+                Text("${notas.length}/200", color = TekioMuted, fontSize = 12.sp, modifier = Modifier.fillMaxWidth().padding(top = 4.dp), textAlign = TextAlign.End)
             }
         }
 
-        if (ticket.estado == "cerrado") {
-            // Diseño del botón cuando el ticket ya está completado (Gris)
-            Button(
+        // ---- Botones inferiores ----
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(
                 onClick = {
-                    viewModel.reabrirTicketEnMySQL(ticket.id)
-                    onBack()
+                    guardando = true
+                    // Se conecta directo con las variables de tu archivo
+                    viewModel.guardarCambiosTicket(
+                        id = ticket.id,
+                        estado = estado.name.lowercase(), // Envia "nuevo", "en_proceso", etc.
+                        marcaEquipo = marca,
+                        clasificacionEquipo = clasificacion.label,
+                        repuesto = repuesto,
+                        notas = notas,
+                        onExito = { mensaje ->
+                            guardando = false
+                            android.widget.Toast.makeText(contexto, mensaje, android.widget.Toast.LENGTH_SHORT).show()
+                            guardar() // Ejecuta tu función local para dejar el registro en el historial
+                        },
+                        onError = { error ->
+                            guardando = false
+                            android.widget.Toast.makeText(contexto, error, android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    )
                 },
-                shape = RoundedCornerShape(size = 8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C2C2C), contentColor = Color.White),
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp).height(50.dp)
+                shape = RoundedCornerShape(8.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, TekioRed),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = TekioRed),
+                modifier = Modifier.fillMaxWidth().height(46.dp),
+                enabled = !guardando
             ) {
-                Icon(imageVector = Icons.Filled.Refresh, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text("Reabrir Ticket", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                if (guardando) {
+                    CircularProgressIndicator(color = TekioRed, modifier = Modifier.size(24.dp))
+                } else {
+                    Icon(Icons.Filled.Save, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Guardar cambios", fontWeight = FontWeight.SemiBold)
+                }
             }
-        } else {
-            // Diseño original de tu botón cuando el ticket está activo (Rojo)
-            Button(
-                onClick = {
-                    viewModel.cerrarTicketEnMySQL(ticket.id)
-                    onBack()
-                },
-                shape = RoundedCornerShape(size = 8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = TekioRed, contentColor = Color.White),
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp).height(50.dp)
-            ) {
-                Icon(imageVector = Icons.Filled.Check, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text("Cerrar / Completar Ticket", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+
+            if (completado) {
+                Button(
+                    onClick = {
+                        viewModel.reabrirTicketEnMySQL(ticket.id)
+                        TicketLocalStore.estados[ticket.id] = TicketStatus.NUEVO
+                        TicketLocalStore.registrar(ticket.id, TipoEvento.REABIERTO, "El ticket volvió a la lista de activos")
+                        onBack()
+                    },
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C2C2C), contentColor = Color.White),
+                    modifier = Modifier.fillMaxWidth().height(50.dp)
+                ) {
+                    Icon(Icons.Filled.Refresh, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Reabrir Ticket", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                }
+            } else {
+                Button(
+                    onClick = {
+                        guardar()
+                        viewModel.cerrarTicketEnMySQL(ticket.id)
+                        TicketLocalStore.registrar(ticket.id, TipoEvento.COMPLETADO, "Ticket finalizado y movido a Completados")
+                        onBack()
+                    },
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = TekioRed, contentColor = Color.White),
+                    modifier = Modifier.fillMaxWidth().height(50.dp)
+                ) {
+                    Icon(Icons.Filled.Check, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Cerrar / Completar Ticket", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun camposColores() = OutlinedTextFieldDefaults.colors(
+    focusedTextColor = Color.White, unfocusedTextColor = Color.White,
+    focusedBorderColor = TekioRed, unfocusedBorderColor = Color(0xFF2B3036),
+    cursorColor = TekioRed, focusedContainerColor = TekioSurface, unfocusedContainerColor = TekioSurface
+)
+
+@Composable
+private fun SeccionConIcono(icono: ImageVector, titulo: String, contenido: @Composable ColumnScope.() -> Unit) {
+    Row(verticalAlignment = Alignment.Top) {
+        Icon(icono, contentDescription = null, tint = TekioMuted, modifier = Modifier.size(32.dp))
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(titulo, color = Color.White, fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(6.dp))
+            contenido()
+        }
+    }
+}
+
+/** Cuadro de selección: al tocarlo despliega las opciones (DropdownMenu nativo). */
+@Composable
+private fun CampoDesplegable(
+    valor: String,
+    opciones: List<String>,
+    onSeleccion: (String) -> Unit,
+    resaltado: Boolean = false,
+    iconoDe: ((String) -> ImageVector)? = null
+) {
+    var expandido by remember { mutableStateOf(false) }
+    var ancho by remember { mutableStateOf(0.dp) }
+    val densidad = LocalDensity.current
+
+    Box(Modifier.fillMaxWidth()) {
+        Row(
+            Modifier.fillMaxWidth()
+                .onSizeChanged { ancho = with(densidad) { it.width.toDp() } }
+                .clip(RoundedCornerShape(8.dp)).background(TekioSurface)
+                .border(if (resaltado) 1.5.dp else 1.dp, if (resaltado) TekioRed else Color(0xFF2B3036), RoundedCornerShape(8.dp))
+                .clickable { expandido = true }
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(valor, color = Color.White, fontSize = 16.sp, modifier = Modifier.weight(1f))
+            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null, tint = Color.White)
+        }
+        DropdownMenu(
+            expanded = expandido,
+            onDismissRequest = { expandido = false },
+            modifier = Modifier.width(ancho).background(TekioSurfaceVariant)
+        ) {
+            opciones.forEach { opcion ->
+                DropdownMenuItem(
+                    text = { Text(opcion, color = Color.White) },
+                    leadingIcon = if (iconoDe != null) {
+                        { Icon(iconoDe(opcion), contentDescription = null, tint = Color(0xFFD0D3D8)) }
+                    } else null,
+                    onClick = { onSeleccion(opcion); expandido = false }
+                )
             }
         }
     }

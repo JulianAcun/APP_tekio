@@ -28,7 +28,13 @@ data class Ticket(
     val cliente: String,
     val equipo: String,
     val falla: String,
-    val estado: String = "abierto"
+    val estado: String,
+    val fecha: String = "",
+    // Nuevos campos
+    val marca_equipo: String = "",
+    val clasificacion_equipo: String = "",
+    val repuesto: String = "",
+    val notas: String = ""
 )
 
 // Nota: Eliminamos todo el bloque 'object SampleData' porque ya

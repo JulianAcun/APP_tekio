@@ -2,28 +2,25 @@
 header('Content-Type: application/json');
 $conexion = new mysqli("localhost", "root", "", "glpi_local");
 
-if ($conexion->connect_error) {
-    die(json_encode(["estado" => "error", "mensaje" => "Error de conexión a la BD"]));
-}
-
-// Capturamos las variables enviadas por Android mediante POST
 $id = $_POST['id'] ?? '';
-$equipo = $_POST['equipo'] ?? '';
+$estado = $_POST['estado'] ?? '';
+$marca_equipo = $_POST['marca_equipo'] ?? '';
+$clasificacion_equipo = $_POST['clasificacion_equipo'] ?? '';
+$repuesto = $_POST['repuesto'] ?? '';
+$notas = $_POST['notas'] ?? '';
 
-if ($id != '' && $equipo != '') {
-    // Preparamos la consulta UPDATE (Usamos bind_param por seguridad)
-    $stmt = $conexion->prepare("UPDATE tickets SET equipo = ? WHERE id = ?");
-    $stmt->bind_param("si", $equipo, $id);
+if ($id != '' && $estado != '') {
+    $stmt = $conexion->prepare("UPDATE tickets SET estado=?, marca_equipo=?, clasificacion_equipo=?, repuesto=?, notas=? WHERE id=?");
+    $stmt->bind_param("sssssi", $estado, $marca_equipo, $clasificacion_equipo, $repuesto, $notas, $id);
     
     if ($stmt->execute()) {
         echo json_encode(["estado" => "exito", "mensaje" => "Ticket actualizado correctamente"]);
     } else {
-        echo json_encode(["estado" => "error", "mensaje" => "Error al ejecutar UPDATE"]);
+        echo json_encode(["estado" => "error", "mensaje" => "Error al actualizar"]);
     }
     $stmt->close();
 } else {
-    echo json_encode(["estado" => "error", "mensaje" => "Faltan datos de ID o equipo"]);
+    echo json_encode(["estado" => "error", "mensaje" => "Faltan datos requeridos"]);
 }
-
 $conexion->close();
 ?>

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.tekio.app-mergeDebugResources-2:/values-mn/values-mn.xml",
+            "outputFile": "com.tekio.app-mergeDebugResources-48:/values-mn/values-mn.xml",
             "map": [
                 {
                     "source": "C:\\Users\\acuna\\.gradle\\caches\\9.6.0\\transforms\\f7d1f98a1f462c1eb391382552b1014b\\transformed\\material3-release\\res\\values-mn\\values-mn.xml",

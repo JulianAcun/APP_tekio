@@ -1,10 +1,10 @@
-#Mon Nov 02 23:12:59 GMT-05:00 2026
-base.0=C\:\\Developer UNI\\Tekio\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
-base.1=C\:\\Developer UNI\\Tekio\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
-base.2=C\:\\Developer UNI\\Tekio\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\12\\classes.dex
-base.3=C\:\\Developer UNI\\Tekio\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\13\\classes.dex
-base.4=C\:\\Developer UNI\\Tekio\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\1\\classes.dex
-base.5=C\:\\Developer UNI\\Tekio\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes2.dex
+#Wed Nov 04 15:14:48 GMT-05:00 2026
+base.0=C\:\\Users\\acuna\\Downloads\\Trabajos\\APP_tekio\\APP_tekio-main\\Tekio\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
+base.1=C\:\\Users\\acuna\\Downloads\\Trabajos\\APP_tekio\\APP_tekio-main\\Tekio\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
+base.2=C\:\\Users\\acuna\\Downloads\\Trabajos\\APP_tekio\\APP_tekio-main\\Tekio\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\12\\classes.dex
+base.3=C\:\\Users\\acuna\\Downloads\\Trabajos\\APP_tekio\\APP_tekio-main\\Tekio\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\13\\classes.dex
+base.4=C\:\\Users\\acuna\\Downloads\\Trabajos\\APP_tekio\\APP_tekio-main\\Tekio\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\1\\classes.dex
+base.5=C\:\\Users\\acuna\\Downloads\\Trabajos\\APP_tekio\\APP_tekio-main\\Tekio\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes2.dex
 path.0=classes.dex
 path.1=0/classes.dex
 path.2=12/classes.dex

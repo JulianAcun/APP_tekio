@@ -9,8 +9,8 @@
 9        android:targetSdkVersion="34" />
 10
 11    <uses-permission android:name="android.permission.INTERNET" />
-11-->C:\Developer UNI\Tekio\app\src\main\AndroidManifest.xml:3:5-67
-11-->C:\Developer UNI\Tekio\app\src\main\AndroidManifest.xml:3:22-64
+11-->C:\Users\acuna\Downloads\Trabajos\APP_tekio\APP_tekio-main\Tekio\app\src\main\AndroidManifest.xml:3:5-67
+11-->C:\Users\acuna\Downloads\Trabajos\APP_tekio\APP_tekio-main\Tekio\app\src\main\AndroidManifest.xml:3:22-64
 12
 13    <permission
 13-->[androidx.core:core:1.13.1] C:\Users\acuna\.gradle\caches\9.6.0\transforms\0e66b3b1b3ab8194d5ec1b56f326eb26\transformed\core-1.13.1\AndroidManifest.xml:22:5-24:47
@@ -24,37 +24,37 @@
 17-->[androidx.core:core:1.13.1] C:\Users\acuna\.gradle\caches\9.6.0\transforms\0e66b3b1b3ab8194d5ec1b56f326eb26\transformed\core-1.13.1\AndroidManifest.xml:26:22-94
 18
 19    <application
-19-->C:\Developer UNI\Tekio\app\src\main\AndroidManifest.xml:4:5-18:19
+19-->C:\Users\acuna\Downloads\Trabajos\APP_tekio\APP_tekio-main\Tekio\app\src\main\AndroidManifest.xml:4:5-18:19
 20        android:allowBackup="true"
-20-->C:\Developer UNI\Tekio\app\src\main\AndroidManifest.xml:5:9-35
+20-->C:\Users\acuna\Downloads\Trabajos\APP_tekio\APP_tekio-main\Tekio\app\src\main\AndroidManifest.xml:5:9-35
 21        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
 21-->[androidx.core:core:1.13.1] C:\Users\acuna\.gradle\caches\9.6.0\transforms\0e66b3b1b3ab8194d5ec1b56f326eb26\transformed\core-1.13.1\AndroidManifest.xml:28:18-86
 22        android:debuggable="true"
 23        android:extractNativeLibs="false"
 24        android:label="Tekio"
-24-->C:\Developer UNI\Tekio\app\src\main\AndroidManifest.xml:6:9-30
+24-->C:\Users\acuna\Downloads\Trabajos\APP_tekio\APP_tekio-main\Tekio\app\src\main\AndroidManifest.xml:6:9-30
 25        android:supportsRtl="true"
-25-->C:\Developer UNI\Tekio\app\src\main\AndroidManifest.xml:7:9-35
+25-->C:\Users\acuna\Downloads\Trabajos\APP_tekio\APP_tekio-main\Tekio\app\src\main\AndroidManifest.xml:7:9-35
 26        android:testOnly="true"
 27        android:theme="@style/Theme.Tekio" >
-27-->C:\Developer UNI\Tekio\app\src\main\AndroidManifest.xml:8:9-43
+27-->C:\Users\acuna\Downloads\Trabajos\APP_tekio\APP_tekio-main\Tekio\app\src\main\AndroidManifest.xml:8:9-43
 28        <activity
-28-->C:\Developer UNI\Tekio\app\src\main\AndroidManifest.xml:9:9-17:20
+28-->C:\Users\acuna\Downloads\Trabajos\APP_tekio\APP_tekio-main\Tekio\app\src\main\AndroidManifest.xml:9:9-17:20
 29            android:name="com.tekio.app.MainActivity"
-29-->C:\Developer UNI\Tekio\app\src\main\AndroidManifest.xml:10:13-41
+29-->C:\Users\acuna\Downloads\Trabajos\APP_tekio\APP_tekio-main\Tekio\app\src\main\AndroidManifest.xml:10:13-41
 30            android:exported="true"
-30-->C:\Developer UNI\Tekio\app\src\main\AndroidManifest.xml:11:13-36
+30-->C:\Users\acuna\Downloads\Trabajos\APP_tekio\APP_tekio-main\Tekio\app\src\main\AndroidManifest.xml:11:13-36
 31            android:theme="@style/Theme.Tekio" >
-31-->C:\Developer UNI\Tekio\app\src\main\AndroidManifest.xml:12:13-47
+31-->C:\Users\acuna\Downloads\Trabajos\APP_tekio\APP_tekio-main\Tekio\app\src\main\AndroidManifest.xml:12:13-47
 32            <intent-filter>
-32-->C:\Developer UNI\Tekio\app\src\main\AndroidManifest.xml:13:13-16:29
+32-->C:\Users\acuna\Downloads\Trabajos\APP_tekio\APP_tekio-main\Tekio\app\src\main\AndroidManifest.xml:13:13-16:29
 33                <action android:name="android.intent.action.MAIN" />
-33-->C:\Developer UNI\Tekio\app\src\main\AndroidManifest.xml:14:17-69
-33-->C:\Developer UNI\Tekio\app\src\main\AndroidManifest.xml:14:25-66
+33-->C:\Users\acuna\Downloads\Trabajos\APP_tekio\APP_tekio-main\Tekio\app\src\main\AndroidManifest.xml:14:17-69
+33-->C:\Users\acuna\Downloads\Trabajos\APP_tekio\APP_tekio-main\Tekio\app\src\main\AndroidManifest.xml:14:25-66
 34
 35                <category android:name="android.intent.category.LAUNCHER" />
-35-->C:\Developer UNI\Tekio\app\src\main\AndroidManifest.xml:15:17-77
-35-->C:\Developer UNI\Tekio\app\src\main\AndroidManifest.xml:15:27-74
+35-->C:\Users\acuna\Downloads\Trabajos\APP_tekio\APP_tekio-main\Tekio\app\src\main\AndroidManifest.xml:15:17-77
+35-->C:\Users\acuna\Downloads\Trabajos\APP_tekio\APP_tekio-main\Tekio\app\src\main\AndroidManifest.xml:15:27-74
 36            </intent-filter>
 37        </activity>
 38        <activity
